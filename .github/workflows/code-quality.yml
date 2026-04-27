@@ -14,7 +14,7 @@ jobs:
     name: 🧹 Linter
     if: github.event.pull_request.draft == false
     timeout-minutes: 10
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     steps:
       - uses: actions/checkout@v4
 
@@ -27,7 +27,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 24
-          cache: 'pnpm'
+          cache: "pnpm"
 
       - name: Install deps
         run: pnpm install
@@ -39,7 +39,7 @@ jobs:
     name: 🟦 TypeScript Checker
     if: github.event.pull_request.draft == false
     timeout-minutes: 10
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     steps:
       - uses: actions/checkout@v4
 
@@ -52,7 +52,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 24
-          cache: 'pnpm'
+          cache: "pnpm"
 
       - name: Install deps
         run: pnpm install
@@ -64,10 +64,10 @@ jobs:
     name: 🔬 Tests
     if: github.event.pull_request.draft == false
     timeout-minutes: 10
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     env:
       VITE_BASE_URL: http://localhost:3000
-      VITE_S3_BUCKET_PUBLIC_URL: 'http://localhost:9000/default'
+      VITE_S3_BUCKET_PUBLIC_URL: "http://localhost:9000/default"
     steps:
       - uses: actions/checkout@v4
 
@@ -85,7 +85,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 24
-          cache: 'pnpm'
+          cache: "pnpm"
 
       - name: Cache node modules
         uses: actions/cache@v4

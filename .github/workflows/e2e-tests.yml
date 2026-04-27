@@ -9,7 +9,7 @@ jobs:
     name: Playwright E2E Tests
     if: github.event.pull_request.draft == false
     timeout-minutes: 30
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     env:
       VITE_BASE_URL: http://localhost:3000
       VITE_ENV_NAME: tests
@@ -26,25 +26,28 @@ jobs:
       DOCKER_MINIO_USERNAME: minioadmin
       DOCKER_MINIO_PASSWORD: minioadmin
       VITE_S3_BUCKET_PUBLIC_URL: http://localhost:9000/default
-    services:
-      postgres:
-        image: postgres:16.1
-
-        env:
-          POSTGRES_PASSWORD: cowat
-          POSTGRES_USER: cowat
-          POSTGRES_DB: cowat
-
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-        ports:
-          - 5432:5432
 
     steps:
       - uses: actions/checkout@v4
+
+      - name: Start Postgres
+        run: |
+          # Clean up old containers
+          docker rm -f postgres-db || true
+
+          docker run -d \
+            --name postgres-db \
+            --network host \
+            -e POSTGRES_USER=cowat \
+            -e POSTGRES_PASSWORD=cowat \
+            -e POSTGRES_DB=cowat \
+            postgres:16.1
+
+          echo "Attente du démarrage de Postgres..."
+          until docker exec postgres-db pg_isready -U cowat; do
+            sleep 2
+          done
+          echo "Postgres est prêt !"
 
       - name: Install pnpm
         uses: pnpm/action-setup@v4
@@ -79,8 +82,11 @@ jobs:
 
       - name: Start MinIO server
         run: |
+          docker rm -f minio || true
+
           docker run -d \
             --name minio \
+            --network host \
             -p 9000:9000 \
             -p 9001:9001 \
             -e MINIO_ROOT_USER=minioadmin \
@@ -97,10 +103,6 @@ jobs:
 
       - name: Setup MinIO bucket
         run: |
-          # Install MinIO client
-          curl -sSL https://dl.min.io/client/mc/release/linux-amd64/mc -o /usr/local/bin/mc
-          chmod +x /usr/local/bin/mc
-
           # Configure MinIO client
           mc alias set minio http://localhost:9000 minioadmin minioadmin
 

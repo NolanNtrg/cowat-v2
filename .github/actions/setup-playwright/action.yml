@@ -19,7 +19,7 @@ runs:
     - name: Install Playwright Chromium
       if: steps.playwright-cache.outputs.cache-hit != 'true'
       shell: bash
-      run: pnpm exec playwright install chromium --with-deps
+      run: pnpm exec playwright install chromium
 
     - name: Install Playwright system deps only
       if: steps.playwright-cache.outputs.cache-hit == 'true'
