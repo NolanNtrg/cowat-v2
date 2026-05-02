@@ -1,0 +1,49 @@
+# 🧪 E2E Tests
+# Conversion of .github/workflows/e2e-tests.yml
+#
+# Notes:
+# - GitHub Actions `services.postgres` becomes Woodpecker top-level `services:`.
+#   The service is reachable at hostname `postgres` from the e2e step.
+# - GitHub `services.options.--health-cmd` has no equivalent in Woodpecker;
+#   we wait for postgres to be reachable inside the e2e step (bash /dev/tcp).
+# - GitHub `actions/upload-artifact@v4` has no built-in equivalent in Woodpecker.
+#   Configure a plugin (e.g. woodpeckerci/plugin-s3 or plugin-gitea-release) to
+#   upload `playwright-report/` and `test-results/` if needed.
+
+when:
+  - event: pull_request
+  - event: manual
+
+services:
+  postgres:
+    image: postgres:16.1
+    environment:
+      POSTGRES_PASSWORD: cowat
+      POSTGRES_USER: cowat
+      POSTGRES_DB: cowat
+
+steps:
+  e2e:
+    image: mcr.microsoft.com/playwright:v1.59.1-noble
+    environment:
+      VITE_BASE_URL: http://localhost:3000
+      VITE_ENV_NAME: tests
+      DATABASE_URL: postgres://cowat:cowat@postgres:5432/cowat
+      AUTH_SECRET: fyXjLxjXJowjicI2BAjxOaUsQd1QafdegZDciJE/xM8=
+      EMAIL_SERVER: smtp://username:password@localhost:1025
+      EMAIL_FROM: Cowat <noreply@example.com>
+    commands:
+      - git config --global --add safe.directory "$CI_WORKSPACE"
+      - corepack enable
+      - corepack prepare pnpm@10 --activate
+      - pnpm config set store-dir ~/.pnpm-store
+      - pnpm install --prefer-offline
+      - |
+        echo "Waiting for postgres..."
+        until (echo > /dev/tcp/postgres/5432) >/dev/null 2>&1; do
+          sleep 2
+        done
+        echo "Postgres is ready."
+      - pnpm db:push
+      - pnpm db:seed
+      - pnpm e2e

@@ -1,0 +1,46 @@
+# 🔎 Code Quality
+# Conversion of .github/workflows/code-quality.yml
+#
+# Note: Woodpecker does not expose a "draft PR" flag in the YAML. To skip
+# draft PRs, configure the GitHub forge integration on the Woodpecker server
+# (option `WOODPECKER_GITHUB_SKIP_VERIFY` / forge-level draft handling) or
+# rely on labels via `evaluate: 'not (CI_COMMIT_PULL_REQUEST_LABELS contains "draft")'`.
+
+when:
+  - event: pull_request
+    branch: [main, dev]
+
+steps:
+  linter:
+    image: node:24
+    depends_on: []
+    commands:
+      - corepack enable
+      - corepack prepare pnpm@10 --activate
+      - pnpm config set store-dir ~/.pnpm-store
+      - pnpm install --prefer-offline
+      - pnpm oxlint --deny-warnings .
+
+  typescript-checker:
+    image: node:24
+    depends_on: []
+    commands:
+      - corepack enable
+      - corepack prepare pnpm@10 --activate
+      - pnpm config set store-dir ~/.pnpm-store
+      - pnpm install --prefer-offline
+      - pnpm run lint:ts
+
+  tests:
+    image: mcr.microsoft.com/playwright:v1.59.1-noble
+    depends_on: []
+    environment:
+      VITE_BASE_URL: http://localhost:3000
+      VITE_S3_BUCKET_PUBLIC_URL: http://localhost:9000/default
+    commands:
+      - git config --global --add safe.directory "$CI_WORKSPACE"
+      - corepack enable
+      - corepack prepare pnpm@10 --activate
+      - pnpm config set store-dir ~/.pnpm-store
+      - pnpm install --prefer-offline
+      - SKIP_ENV_VALIDATION=true pnpm run test:ci

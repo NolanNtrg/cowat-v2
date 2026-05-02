@@ -1,0 +1,34 @@
+# 🚀 Release
+# Conversion of .github/workflows/release.yml
+#
+# Notes:
+# - Equivalent of `actions/checkout@v4` with `fetch-depth: 0`: override the
+#   default clone with `partial: false` and `tags: true` so semantic-release
+#   has full history and tags.
+# - Configure a Woodpecker repo/org secret named `github_token` with the
+#   permissions needed by semantic-release (contents, issues, pull-requests).
+
+when:
+  - event: push
+    branch: [main]
+
+clone:
+  git:
+    image: woodpeckerci/plugin-git
+    settings:
+      partial: false
+      tags: true
+
+steps:
+  release:
+    image: node:24
+    environment:
+      GITHUB_TOKEN:
+        from_secret: github_token
+    commands:
+      - git config --global --add safe.directory "$CI_WORKSPACE"
+      - corepack enable
+      - corepack prepare pnpm@10 --activate
+      - pnpm config set store-dir ~/.pnpm-store
+      - pnpm install --prefer-offline
+      - pnpm exec semantic-release

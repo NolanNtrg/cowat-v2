@@ -1,0 +1,41 @@
+# 🏷️ PR Title
+# Conversion of .github/workflows/pr-title.yml
+#
+# Note: Woodpecker does not expose the PR title as an env var. We fetch it
+# from the GitHub API. Configure a Woodpecker repo/org secret named
+# `github_token` with at minimum `pull_requests: read` permission.
+
+when:
+  - event: pull_request
+    branch: [dev]
+
+steps:
+  check-pr-title:
+    image: alpine:3.19
+    environment:
+      GH_TOKEN:
+        from_secret: github_token
+    commands:
+      - apk add --no-cache curl jq
+      - |
+        TITLE=$(curl -fsSL \
+          -H "Authorization: Bearer $GH_TOKEN" \
+          -H "Accept: application/vnd.github+json" \
+          "https://api.github.com/repos/$CI_REPO/pulls/$CI_COMMIT_PULL_REQUEST" \
+          | jq -r .title)
+        PATTERN='^(feat|fix|chore|test|docs)(\(.+\))?: .+$'
+
+        if ! echo "$TITLE" | grep -qE "$PATTERN"; then
+          echo "❌ PR title '$TITLE' does not match the required pattern."
+          echo ""
+          echo "Expected: (feat|fix|chore|test|docs)(<scope>)?: <description>"
+          echo ""
+          echo "Examples:"
+          echo "  feat: add login page"
+          echo "  fix(auth): token expiry"
+          echo "  chore: drop legacy api"
+          echo "  docs(readme): update install guide"
+          exit 1
+        fi
+
+        echo "✅ PR title '$TITLE' is valid."
