@@ -19,8 +19,7 @@ steps:
       VITE_BASE_URL: http://localhost:3000
       VITE_ENV_NAME: tests
       DATABASE_URL: postgres://cowat:cowat@postgres:5432/cowat
-      AUTH_SECRET:
-        from_secret: auth_secret
+      AUTH_SECRET: fyXjLxjXJowjicI2BAjxOaUsQd1QafdegZDciJE/xM8=
       EMAIL_SERVER: smtp://username:password@localhost:1025
       EMAIL_FROM: Cowat <noreply@example.com>
     commands:
