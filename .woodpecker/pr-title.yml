@@ -10,7 +10,7 @@ when:
     branch: [dev]
 
 steps:
-  check-pr-title:
+  - name: check-pr-title
     image: alpine:3.19
     environment:
       GH_TOKEN:

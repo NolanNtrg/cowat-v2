@@ -23,7 +23,7 @@ services:
       POSTGRES_DB: cowat
 
 steps:
-  e2e:
+  - name: e2e
     image: mcr.microsoft.com/playwright:v1.59.1-noble
     environment:
       VITE_BASE_URL: http://localhost:3000

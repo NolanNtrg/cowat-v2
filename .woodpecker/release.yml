@@ -20,7 +20,7 @@ clone:
       tags: true
 
 steps:
-  release:
+  - name: release
     image: node:24
     environment:
       GITHUB_TOKEN:

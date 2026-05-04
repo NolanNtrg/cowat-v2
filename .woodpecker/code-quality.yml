@@ -11,7 +11,7 @@ when:
     branch: [main, dev]
 
 steps:
-  linter:
+  - name: linter
     image: node:24
     depends_on: []
     commands:
@@ -21,7 +21,7 @@ steps:
       - pnpm install --prefer-offline
       - pnpm oxlint --deny-warnings .
 
-  typescript-checker:
+  - name: typescript-checker
     image: node:24
     depends_on: []
     commands:
@@ -31,7 +31,7 @@ steps:
       - pnpm install --prefer-offline
       - pnpm run lint:ts
 
-  tests:
+  - name: tests
     image: mcr.microsoft.com/playwright:v1.59.1-noble
     depends_on: []
     environment:
