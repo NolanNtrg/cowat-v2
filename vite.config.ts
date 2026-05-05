@@ -18,7 +18,6 @@ export default defineConfig(({ mode }) => {
     server: {
       port: env.VITE_PORT ? Number(env.VITE_PORT) : 3000,
       strictPort: true,
-      fs: { allow: ['.', 'node_modules'] },
     },
     resolve: {
       tsconfigPaths: true,
