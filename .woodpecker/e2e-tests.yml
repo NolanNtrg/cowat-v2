@@ -15,6 +15,7 @@ steps:
   - name: e2e
     image: mcr.microsoft.com/playwright:v1.59.1-noble
     environment:
+      CI: "true"
       TMPDIR: /tmp
       VITE_BASE_URL: http://localhost:3000
       VITE_ENV_NAME: tests

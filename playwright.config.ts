@@ -46,9 +46,9 @@ export default defineConfig({
 
   /* Run your local dev server before starting the tests */
   webServer: {
-    command: 'pnpm dev',
+    command: process.env.CI ? 'pnpm build && pnpm start' : 'pnpm dev',
     url: `${process.env.VITE_BASE_URL}/api/openapi/app`,
     reuseExistingServer: !process.env.CI,
-    timeout: 120 * 1000,
+    timeout: process.env.CI ? 5 * 60 * 1000 : 120 * 1000,
   },
 });
