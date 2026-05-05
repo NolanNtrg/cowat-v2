@@ -7,7 +7,7 @@ steps:
     image: alpine:3.19
     commands:
       - |
-        TITLE="$CI_COMMIT_TITLE"
+        TITLE="$CI_COMMIT_MESSAGE"
         PATTERN='^(feat|fix|chore|test|docs)(\(.+\))?: .+$'
 
         if ! echo "$TITLE" | grep -qE "$PATTERN"; then
