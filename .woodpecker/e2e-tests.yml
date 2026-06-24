@@ -1,0 +1,41 @@
+when:
+  - event: pull_request
+    branch: [dev]
+  - event: manual
+
+services:
+  postgres:
+    image: postgres:16.1
+    environment:
+      POSTGRES_PASSWORD: cowat
+      POSTGRES_USER: cowat
+      POSTGRES_DB: cowat
+
+steps:
+  - name: e2e
+    image: mcr.microsoft.com/playwright:v1.59.1-noble
+    environment:
+      CI: "true"
+      TMPDIR: /tmp
+      VITE_BASE_URL: http://localhost:3000
+      VITE_ENV_NAME: tests
+      DATABASE_URL: postgres://cowat:cowat@postgres:5432/cowat
+      AUTH_SECRET: fyXjLxjXJowjicI2BAjxOaUsQd1QafdegZDciJE/xM8=
+      EMAIL_SERVER: smtp://username:password@localhost:1025
+      EMAIL_FROM: Cowat <noreply@example.com>
+    commands:
+      - git config --global --add safe.directory "$CI_WORKSPACE"
+      - corepack enable
+      - corepack prepare pnpm@10.33.2 --activate
+      - pnpm config set store-dir ~/.pnpm-store
+      - pnpm install
+      - |
+        echo "Waiting for postgres..."
+        until bash -c "echo > /dev/tcp/postgres/5432" >/dev/null 2>&1; do
+          sleep 2
+        done
+        sleep 3
+        echo "Postgres is ready."
+      - pnpm db:push
+      - pnpm db:seed
+      - pnpm e2e
